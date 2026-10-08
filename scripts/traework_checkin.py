@@ -19,6 +19,10 @@ RAW = os.environ.get("TRAE_COOKIE", "").strip().lstrip("\ufeff")
 LEGACY_JWT = os.environ.get("TRAE_SESSION", "").strip().lstrip("\ufeff")
 LEGACY_DEVICE = os.environ.get("TRAE_DEVICE_ID", "").strip().lstrip("\ufeff")
 
+# 若 TRAE_SESSION 实际是导出的 sess.json（以 { 开头），自动当作 cookie 会话使用
+if not RAW and LEGACY_JWT.startswith("{"):
+    RAW, LEGACY_JWT = LEGACY_JWT, ""
+
 
 def cookie_header_for(cookies, host):
     parts = []
