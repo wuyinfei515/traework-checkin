@@ -5,15 +5,15 @@ import urllib.request
 import urllib.error
 
 BASE = "https://api.trae.cn/trae/api/v2/ug/checkin_credits"
-SESSION = os.environ.get("TRAE_SESSION", "")
-DEVICE_ID = os.environ.get("TRAE_DEVICE_ID", "")
+SESSION = os.environ.get("TRAE_SESSION", "").strip().lstrip("\ufeff")
+DEVICE_ID = os.environ.get("TRAE_DEVICE_ID", "").strip().lstrip("\ufeff")
 
 if not SESSION or not DEVICE_ID:
     print("缺少 TRAE_SESSION 或 TRAE_DEVICE_ID", file=sys.stderr)
     sys.exit(2)
 
 HEADERS = {
-    "Authorization": f"Bearer {SESSION}",
+    "Authorization": f"Cloud-IDE-JWT {SESSION}",
     "Content-Type": "application/json",
     "X-Device-Id": DEVICE_ID,
     "User-Agent": "TraeWork/1.0",
