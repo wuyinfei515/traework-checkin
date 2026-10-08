@@ -4,8 +4,8 @@ import os, json, urllib.request
 
 WEBHOOK = os.environ.get("FEISHU_WEBHOOK_URL", "")
 if not WEBHOOK:
-    print("FEISHU_WEBHOOK_URL 未配置", flush=True)
-    raise SystemExit(1)
+    print("FEISHU_WEBHOOK_URL 未配置，跳过飞书通知", flush=True)
+    raise SystemExit(0)
 
 try:
     with open("result.json", "r", encoding="utf-8") as f:
