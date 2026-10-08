@@ -1,0 +1,37 @@
+name: Traework Daily Checkin
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # 每天 UTC 00:00 = 北京时间 08:00
+  workflow_dispatch:
+
+jobs:
+  checkin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        run: |
+          python_cmd=$(command -v python3 || command -v python)
+          echo "PYTHON=$python_cmd" >> "$GITHUB_ENV"
+          $python_cmd --version
+
+      - name: Run Traework checkin
+        id: checkin
+        env:
+          TRAE_SESSION: ${{ secrets.TRAE_SESSION }}
+          TRAE_DEVICE_ID: ${{ secrets.TRAE_DEVICE_ID }}
+        run: |
+          $PYTHON scripts/traework_checkin.py
+        continue-on-error: true
+
+      - name: Send result to Feishu
+        if: always()
+        env:
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+        run: |
+          $PYTHON scripts/feishu_notify.py
