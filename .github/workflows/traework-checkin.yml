@@ -20,28 +20,19 @@ jobs:
           echo "PYTHON=$python_cmd" >> "$GITHUB_ENV"
           $python_cmd --version
 
-      - name: Write session file
+      - name: Run Traework checkin
+        id: checkin
         env:
           TRAE_COOKIE: ${{ secrets.TRAE_COOKIE }}
         run: |
-          $PYTHON -c "
-          import os, json, sys
-          raw = os.environ.get('TRAE_COOKIE', '').replace('\r', '')
-          with open('sess.json', 'w', encoding='utf-8') as f:
-              f.write(raw)
-          d = json.loads(raw)
-          print(f'sess.json OK: {len(d.get(\"cookies\", []))} cookies, device_id={d.get(\"device_id\", \"?\")}')
-          "
-
-      - name: Run Traework checkin
-        id: checkin
-        run: |
+          printf '%s' "$TRAE_COOKIE" > sess.json
           cd scripts
           $PYTHON trae_checkin.py --session ../sess.json
           EC=$?
           echo "exit_code=$EC"
           cat checkin.log 2>/dev/null || true
           exit $EC
+        continue-on-error: true
 
       - name: Send result to Feishu
         if: always()
