@@ -26,7 +26,20 @@ jobs:
           TRAE_COOKIE: ${{ secrets.TRAE_COOKIE }}
         run: |
           set +e
-          printf '%s' "$TRAE_COOKIE" > sess.json
+          $PYTHON -c "
+          import os, sys, json
+          raw = os.environ.get('TRAE_COOKIE', '')
+          print(f'[DEBUG] TRAE_COOKIE length={len(raw)}, first_bytes={raw[:20]!r}')
+          with open('sess.json', 'w', encoding='utf-8') as f:
+              f.write(raw)
+          print(f'[DEBUG] sess.json written, {len(raw)} bytes')
+          try:
+              d = json.loads(raw)
+              print(f'[DEBUG] JSON OK: {len(d.get(\"cookies\",[]))} cookies')
+          except Exception as e:
+              print(f'[DEBUG] JSON PARSE FAIL: {e}')
+              sys.exit(99)
+          "
           cd scripts
           $PYTHON trae_checkin.py --session ../sess.json
           EC=$?
