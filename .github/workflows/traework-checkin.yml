@@ -28,12 +28,23 @@ jobs:
           set +e
           $PYTHON -c "
           import os, base64, sys, json
-          b64 = os.environ.get('TRAE_COOKIE', '')
-          raw = base64.b64decode(b64).decode('utf-8')
-          d = json.loads(raw)
+          raw = os.environ.get('TRAE_COOKIE', '').strip()
+          # 尝试直接 JSON 解析
+          try:
+              d = json.loads(raw)
+              print('[OK] direct JSON parse')
+          except Exception:
+              # 尝试 base64 解码后再 JSON
+              try:
+                  decoded = base64.b64decode(raw).decode('utf-8')
+                  d = json.loads(decoded)
+                  print('[OK] base64 decode + JSON')
+              except Exception as e2:
+                  print(f'[FAIL] cannot decode TRAE_COOKIE: {e2}')
+                  sys.exit(99)
           with open('sess.json', 'w', encoding='utf-8') as f:
               json.dump(d, f, ensure_ascii=False)
-          print(f'[OK] sess.json decoded: {len(d.get(\"cookies\",[]))} cookies, device_id={d.get(\"device_id\",\"?\")}')
+          print(f'[OK] sess.json: {len(d.get(\"cookies\",[]))} cookies, device_id={d.get(\"device_id\",\"?\")}')
           "
           cd scripts
           $PYTHON trae_checkin.py --session ../sess.json
