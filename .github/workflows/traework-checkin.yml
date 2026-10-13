@@ -24,15 +24,24 @@ jobs:
         env:
           TRAE_COOKIE: ${{ secrets.TRAE_COOKIE }}
         run: |
-          echo "$TRAE_COOKIE" > sess.json
-          wc -c sess.json
+          $PYTHON -c "
+          import os, json, sys
+          raw = os.environ.get('TRAE_COOKIE', '').replace('\r', '')
+          with open('sess.json', 'w', encoding='utf-8') as f:
+              f.write(raw)
+          d = json.loads(raw)
+          print(f'sess.json OK: {len(d.get(\"cookies\", []))} cookies, device_id={d.get(\"device_id\", \"?\")}')
+          "
 
       - name: Run Traework checkin
         id: checkin
         run: |
           cd scripts
           $PYTHON trae_checkin.py --session ../sess.json
-        continue-on-error: true
+          EC=$?
+          echo "exit_code=$EC"
+          cat checkin.log 2>/dev/null || true
+          exit $EC
 
       - name: Send result to Feishu
         if: always()
