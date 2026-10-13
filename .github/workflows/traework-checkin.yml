@@ -25,12 +25,14 @@ jobs:
         env:
           TRAE_COOKIE: ${{ secrets.TRAE_COOKIE }}
         run: |
+          set +e
           printf '%s' "$TRAE_COOKIE" > sess.json
           cd scripts
           $PYTHON trae_checkin.py --session ../sess.json
           EC=$?
           echo "exit_code=$EC"
-          cat checkin.log 2>/dev/null || true
+          echo "=== checkin.log ==="
+          cat checkin.log 2>/dev/null || echo "(no log file)"
           exit $EC
         continue-on-error: true
 
