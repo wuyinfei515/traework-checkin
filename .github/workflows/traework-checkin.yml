@@ -27,18 +27,13 @@ jobs:
         run: |
           set +e
           $PYTHON -c "
-          import os, sys, json
-          raw = os.environ.get('TRAE_COOKIE', '')
-          print(f'[DEBUG] TRAE_COOKIE length={len(raw)}, first_bytes={raw[:20]!r}')
+          import os, base64, sys, json
+          b64 = os.environ.get('TRAE_COOKIE', '')
+          raw = base64.b64decode(b64).decode('utf-8')
+          d = json.loads(raw)
           with open('sess.json', 'w', encoding='utf-8') as f:
-              f.write(raw)
-          print(f'[DEBUG] sess.json written, {len(raw)} bytes')
-          try:
-              d = json.loads(raw)
-              print(f'[DEBUG] JSON OK: {len(d.get(\"cookies\",[]))} cookies')
-          except Exception as e:
-              print(f'[DEBUG] JSON PARSE FAIL: {e}')
-              sys.exit(99)
+              json.dump(d, f, ensure_ascii=False)
+          print(f'[OK] sess.json decoded: {len(d.get(\"cookies\",[]))} cookies, device_id={d.get(\"device_id\",\"?\")}')
           "
           cd scripts
           $PYTHON trae_checkin.py --session ../sess.json
