@@ -20,13 +20,18 @@ jobs:
           echo "PYTHON=$python_cmd" >> "$GITHUB_ENV"
           $python_cmd --version
 
+      - name: Write session file
+        env:
+          TRAE_COOKIE: ${{ secrets.TRAE_COOKIE }}
+        run: |
+          echo "$TRAE_COOKIE" > sess.json
+          wc -c sess.json
+
       - name: Run Traework checkin
         id: checkin
-        env:
-          TRAE_SESSION: ${{ secrets.TRAE_SESSION }}
-          TRAE_DEVICE_ID: ${{ secrets.TRAE_DEVICE_ID }}
         run: |
-          $PYTHON scripts/traework_checkin.py
+          cd scripts
+          $PYTHON trae_checkin.py --session ../sess.json
         continue-on-error: true
 
       - name: Send result to Feishu
@@ -34,4 +39,8 @@ jobs:
         env:
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
         run: |
-          $PYTHON scripts/feishu_notify.py
+          if [ -n "$FEISHU_WEBHOOK_URL" ]; then
+            $PYTHON scripts/feishu_notify.py
+          else
+            echo "FEISHU_WEBHOOK_URL not configured, skipping notification"
+          fi
