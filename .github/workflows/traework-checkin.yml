@@ -53,8 +53,6 @@ jobs:
           echo "=== checkin.log ==="
           cat checkin.log 2>/dev/null || echo "(no log file)"
           exit $EC
-        continue-on-error: true
-
       - name: Send result to Feishu
         if: always()
         env:
